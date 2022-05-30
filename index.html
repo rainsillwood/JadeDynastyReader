@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title></title>
+</head>
+
+<body>
+    <input type="file" name="" id="file" value="" />
+    <script type="text/javascript">
+        var input = document.getElementById('file'); //input file
+        var buffer = new ArrayBuffer();
+        var index = 0;
+        input.onchange = function () {
+            var file = this.files[0]; //获取文件
+            if (!!file) {
+                //读取本地文件
+                var reader = new FileReader();
+                reader.readAsArrayBuffer(file); //ArrayBuffer对象
+                reader.onload = function (e) {
+                    //读取完毕后输出结果
+                    buffer = e.target.result;
+                    alert(getData(buffer, 'string|8', 0) + ',' + getData(buffer, 'int|4', 8) + ',' + getData(
+                        buffer,
+                        'int|4', 12))
+                }
+            }
+        }
+
+        function getData(data, type, index) {
+            let idata = '';
+            let itype = type.split('|');
+            if (itype[0] == 'string') {
+                let stringArray = new Uint16Array(data, index, itype[1] / 2);
+                for (i in stringArray) {
+                    if (stringArray[i] == 0) continue;
+                    idata = idata + String.fromCharCode(stringArray[i]);
+                }
+            }
+            if (itype[0] == 'int') {
+                let inumber = 0;
+                let intArray = new Int16Array(data, index, itype[1] / 2);
+                for (i in intArray) {
+                    inumber = inumber + intArray[i] * (16 ^ ((i - 1) * 2));
+                }
+                idata = idata + intArray[0];
+            }
+            if (itype[0] == 'tint') {
+                let inumber = 0;
+                let intArray = new Int8Array(data, index, itype[1]);
+                for (i in intArray) {
+                    inumber = inumber + intArray[i] * 16 ^ (i - 1);
+                }
+                idata = idata + intArray[0];
+            }
+            if (itype[0] == 'float') {
+                let intArray = new Float32Array(data, index, 1);
+                idata = idata + intArray[0];
+            }
+            if (itype[0] == 'double') {
+                let intArray = new Float64Array(data, index, 1);
+                idata = idata + intArray[0];
+            }
+            if (itype[0] == 'bool') {
+                idata = '暂不支持';
+            }
+            return idata;
+        }
+    </script>
+</body>
+
+</html>
