@@ -10,10 +10,14 @@
         var input; //input file
         var buffer = new ArrayBuffer();
         var rawFile = new XMLHttpRequest();
-        rawFile.open("GET", "meta.json", false);
-        if (rawFile.readyState == 4 && rawFile.status == 200) {
-            var meta = JSON.parse(this.responseText);
+        xmlhttp.onreadystatechange = function () {
+            if (rawFile.readyState == 4 && rawFile.status == 200) {
+                var meta = JSON.parse(this.responseText);
+            }
         }
+        rawFile.open("GET", "meta.json", false);
+        xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xmlhttp.send();
         var iindex, ilength = 0;
         var dataArray = {};
 
