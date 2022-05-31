@@ -13,20 +13,26 @@
     <script type="text/javascript">
         var input = document.getElementById('file'); //input file
         var buffer = new ArrayBuffer();
-        var index = 0;
-        input.onchange = function () {
+        var iindex = 0;
+        input.onchange = function() {
             var file = this.files[0]; //获取文件
             if (!!file) {
                 //读取本地文件
                 var reader = new FileReader();
                 reader.readAsArrayBuffer(file); //ArrayBuffer对象
-                reader.onload = function (e) {
+                reader.onload = function(e) {
                     //读取完毕后输出结果
                     buffer = e.target.result;
-                    alert(getData(buffer, 'string|8', 0) + ',' + getData(buffer, 'int|4', 8) + ',' + getData(
-                        buffer,
-                        'int|4', 12))
+                    parseData();
                 }
+            }
+        }
+
+        function parseData() {
+            iindex = 8;
+            for (i in meta) {
+                let dataLength = getData(buffer, 'int|4', iindex);
+                let dataCount = getData(buffer, 'int|4', iindex);
             }
         }
 
@@ -40,21 +46,22 @@
                     idata = idata + String.fromCharCode(stringArray[i]);
                 }
             }
-            if (itype[0] == 'int') {
+            if (itype[0] == 'uint') {
                 let inumber = 0;
-                let intArray = new Int16Array(data, index, itype[1] / 2);
+                let intArray = new Int8Array(data, index, itype[1] * 1);
                 for (i in intArray) {
-                    inumber = inumber + intArray[i] * (16 ^ ((i - 1) * 2));
+                    inumber = inumber + intArray[i] * (256 ^ (i - 1));
                 }
-                idata = idata + intArray[0];
+                idata = idata + inumber;
             }
-            if (itype[0] == 'tint') {
-                let inumber = 0;
-                let intArray = new Int8Array(data, index, itype[1]);
+            if (itype[0] == 'int') {
+                let bit = itype[1] * 1;
+                let intArray = new Int8Array(data, index, itype[1] * 1);
                 for (i in intArray) {
-                    inumber = inumber + intArray[i] * 16 ^ (i - 1);
+                    inumber = inumber + intArray[i] * (256 ^ (i - 1));
                 }
-                idata = idata + intArray[0];
+                if (inumber >= ((256 ^ bit) / 2)) inumber = inumber - 256 ^ bit;
+                idata = idata + inumber;
             }
             if (itype[0] == 'float') {
                 let intArray = new Float32Array(data, index, 1);
@@ -67,6 +74,7 @@
             if (itype[0] == 'bool') {
                 idata = '暂不支持';
             }
+            iindex = iindex + itype[1] * 1;
             return idata;
         }
     </script>
