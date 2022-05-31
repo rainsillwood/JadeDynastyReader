@@ -5,33 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title></title>
-</head>
-
-<body>
-    <input type="file" name="" id="file" value="" />
+    <title>Jade Dynasty Element Reader</title>
     <script type="text/javascript">
-        var input = document.getElementById('file'); //input file
+        var input; //input file
         var buffer = new ArrayBuffer();
-        var meta = {};
+        var rawFile = new XMLHttpRequest();
+        rawFile.open("GET", "meta.json", false);
+        if (rawFile.readyState == 4 && rawFile.status == 200) {
+            var meta = JSON.parse(this.responseText);
+        }
         var iindex, ilength = 0;
         var dataArray = {};
-        input.onchange = function () {
-            var file = this.files[0]; //获取文件
-            if (!!file) {
-                //读取本地文件
-                var reader = new FileReader();
-                reader.readAsArrayBuffer(file); //ArrayBuffer对象
-                reader.onload = function (e) {
-                    //读取完毕后输出结果
-                    buffer = e.target.result;
-                    meta = JSON.parse(
-                        '{"属性":{"ID":"int|4","名称":"string|64","属性代码":"int|4","有效数量":"int|4","数值/技能id":"float|4","等级/时间":"float|4","触发几率":"float|4"},"装备大类":{"ID":"int|4","名称":"string|64"},"装备小类":{"ID":"int|4","名称":"string|64"},"装备":{"ID":"int|4","大分类":"int|4","小分类":"int|4","名称":"string|64","分类":"int|4","装备位置":"int|4","模型-男":"int|4","模型-女":"int|4","模型-大男":"int|4","模型-大女":"int|4","模型-小男":"int|4","模型-小女":"int|4","模型-左男":"int|4","模型-左女":"int|4","模型-千机男":"int|4","模型-千机女":"int|4","模型-英招男":"int|4","模型-背部男":"int|4","模型-背部女":"int|4","模型-东夷男":"int|4","模型-东夷女":"int|4","时装-大女":"int|4","模型-武器包":"int|4","模型-破军女":"int|4","破军-长刀男":"int|4","破军-长刀女":"int|4","破军-巨刀男":"int|4","破军-巨刀女":"int|4","破军-弓男":"int|4","破军-弓女":"int|4","破军-铩男":"int|4","破军-铩女":"int|4","破军-铩男1":"int|4","破军-铩女1":"int|4","破军-铩男2":"int|4","破军-铩女2":"int|4","未知属性1":"int|4","未知属性2":"int|4","模型-伞男":"int|4","模型-伞女":"int|4","武器-伞男":"int|4","武器-伞女":"int|4","掉落模型":"int|4","图标":"int|4","时装类型":"int|4","武器类型":"int|4","显示说明":"string|32","品阶":"int|4","封神品阶":"int|4","人族1":"int|4","神族1":"int|4","焚香1":"int|4","太昊1":"int|4","人族2":"int|4","神族2":"int|4","焚香2":"int|4","太昊2":"int|4","未知属性3":"int|4","未知属性4":"int|4","未知属性5":"int|4","未知属性6":"int|4","未知属性7":"int|4","未知属性8":"int|4","未知属性9":"int|4","未知属性10":"int|4","性别限制":"int|4","等级要求":"int|4","门派限制":"int|4","前世门派":"int|4","隔世门派":"int|4","跨世门派":"int|4","种族限制":"int|4","修真要求":"int|4","是否飞升":"int|4","阵营要求":"int|4","国战要求":"int|4","称号要求":"int|4","声望要求1":"int|4","声望数值1":"int|4","声望要求2":"int|4","声望数值2":"int|4","社稷要求":"int|4","气血":"int|4","真气":"int|4","元力值":"int|4","元神威能":"int|4","最小攻击":"int|4","最大攻击":"int|4","防御":"int|4","命中":"int|4","闪躲":"int|4","攻击距离":"float|4","出售价格":"int|4","购买价格":"int|4","附加属性1":"int|4","附加属性2":"int|4","附加属性3":"int|4","附加属性4":"int|4","附加属性5":"int|4","附加属性6":"int|4","附加属性7":"int|4","附加属性8":"int|4","附加属性9":"int|4","附加属性10":"int|4","天缘属性":"int|4","炼器费用":"int|4","灌注费用":"int|4","灌注剥离费用":"int|4","镶嵌技能石费":"int|4","剥离技能石费":"int|4","需精炼符":"int|4","炼器+1":"int|4","炼器+2":"int|4","炼器+3":"int|4","炼器+4":"int|4","炼器+5":"int|4","炼器+6":"int|4","炼器+7":"int|4","炼器+8":"int|4","炼器+9":"int|4","炼器+10":"int|4","炼器+11":"int|4","炼器+12":"int|4","炼器+13":"int|4","炼器+14":"int|4","炼器+15":"int|4","炼器+16":"int|4","炼器+17":"int|4","炼器+18":"int|4","炼器+19":"int|4","炼器+20":"int|4","附加精炼1":"int|4","属性1":"int|4","几率1":"float|4","属性2":"int|4","几率2":"float|4","属性3":"int|4","几率3":"float|4","属性4":"int|4","几率4":"float|4","属性5":"int|4","几率5":"float|4","附加精炼2":"int|4","属性6":"int|4","几率6":"float|4","属性7":"int|4","几率7":"float|4","属性8":"int|4","几率8":"float|4","属性9":"int|4","几率9":"float|4","属性10":"int|4","几率10":"float|4","能否血祭":"int|4","能否打孔":"int|4","时装染色":"int|4","时装染色2":"int|4","染料ID":"int|4","灵性等级":"int|4","附加精炼3":"int|4","属性11":"int|4","附加精炼4":"int|4","属性12":"int|4","附加精炼5":"int|4","属性13":"int|4","能否镶嵌":"int|4","未知属性11":"int|4","堆叠上限":"int|4","保护类型":"int|4"}}'
-                    );
-                    parseData();
-                }
-            }
-        }
 
         function parseData() {
             iindex = 8;
@@ -46,7 +30,9 @@
                         dataArray[i][j][k] = getData(buffer, meta[i][k], iindex);
                     }
                 }
-                if (ilength != dataLength * dataCount) { alert(i + ' 数据格式不对'); }
+                if (ilength != dataLength * dataCount) {
+                    alert(i + ' 数据格式不对');
+                }
             }
             alert('~');
         }
@@ -101,6 +87,26 @@
             iindex = iindex + itype[1] * 1;
             ilength = ilength + itype[1] * 1;
             return idata;
+        }
+    </script>
+</head>
+
+<body>
+    <input type="file" name="" id="file" value="" />
+    <script>
+        input = document.getElementById('file');
+        input.onchange = function () {
+            var file = this.files[0]; //获取文件
+            if (!!file) {
+                //读取本地文件
+                var reader = new FileReader();
+                reader.readAsArrayBuffer(file); //ArrayBuffer对象
+                reader.onload = function (e) {
+                    //读取完毕后输出结果
+                    buffer = e.target.result;
+                    parseData();
+                }
+            }
         }
     </script>
 </body>
