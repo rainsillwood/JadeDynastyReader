@@ -10,14 +10,10 @@
         var input; //input file
         var buffer = new ArrayBuffer();
         var rawFile = new XMLHttpRequest();
-        rawFile.onreadystatechange = function () {
-            if (rawFile.readyState == 4 && rawFile.status == 200) {
-                var meta = JSON.parse(this.responseText);
-            }
-        }
-        rawFile.open("GET", "meta.json", false);
-        rawFile.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        rawFile.open('GET', './meta.json', false);
+        rawFile.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
         rawFile.send();
+        var meta = JSON.parse(rawFile.responseText);
         var iindex, ilength = 0;
         var dataArray = {};
 
@@ -113,6 +109,7 @@
             }
         }
     </script>
+    <input type="button" onclick="parseData();" value="处理数据">
 </body>
 
 </html>
