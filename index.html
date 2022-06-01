@@ -8,30 +8,33 @@
     <title>Jade Dynasty Element Reader</title>
     <script type="text/javascript">
         var input; //input file
-        var buffer = new ArrayBuffer();
-        var rawFile = new XMLHttpRequest();
-        rawFile.open('GET', './meta.json', false);
-        rawFile.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-        rawFile.send();
-        var meta = JSON.parse(rawFile.responseText);
-        var iindex, ilength = 0;
-        var dataArray = {};
+        var buffer; buffer = new ArrayBuffer();
+        var meta;
+        var iindex, ilength;
+        var dataArray;
 
         function parseData() {
+            dataArray = {};
             iindex = 8;
             document.getElementById('tph').innerHTML = Object.keys(meta).length;
-            for (i in meta) {
+            for (let i in meta) {
+                if (meta[i].constructor == Number) {
+                    iindex = iindex + meta[i]; continue;
+                }
                 document.getElementById('iph').innerHTML = i;
                 let dataLength = getData(buffer, 'uint|4', iindex) * 1;
                 let dataCount = getData(buffer, 'uint|4', iindex) * 1;
                 ilength = 0;
                 dataArray[i] = [];
                 document.getElementById('tdt').innerHTML = dataCount;
-                for (j = 0; j < dataCount; j++) {
+               if (i.includes('NPC介绍')){
+                   alert('~');
+               }
+                for (let j = 0; j < dataCount; j++) {
                     document.getElementById('idt').innerHTML = j;
                     dataArray[i][j] = {};
                     document.getElementById('tel').innerHTML = Object.keys(meta[i]).length;
-                    for (k in meta[i]) {
+                    for (let k in meta[i]) {
                         document.getElementById('iel').innerHTML = k;
                         dataArray[i][j][k] = getData(buffer, meta[i][k], iindex);
                     }
@@ -43,13 +46,104 @@
             alert('~');
         }
 
+        function getaMeta() {
+            let rawFile = new XMLHttpRequest();
+            rawFile.open('GET', './zxdata.txt', false);
+            rawFile.send();
+            let metaArray = rawFile.responseText.split('\n');
+            meta = {};
+            let p = 0;
+            for (let m in metaArray) {
+                let key = metaArray[m].split('<')[1].split(',')[0];
+                let elements = metaArray[m].split('{')[1].split('}')[0].split('\t');
+                switch (key){
+                    case '传送符':{
+                    p = p + 1;
+                    meta[(m * 1 + p) + '占位1'] = 24;
+                    break;
+                }
+                    case 'NPC介绍服务':{
+                    p = p + 1;
+                    meta[(m * 1 + p) + '占位2'] = 20;
+                    break;
+                    }
+                }
+                key = (m * 1 + p + 1) + '_' + key;
+                meta[key] = {};
+                for (let n in elements) {
+                    let ndata = elements[n].split('|');
+                    ndata[0] = ndata[0].replace('*', '未知数据');
+                    ndata[0] = (n * 1 + 1) + '_' + ndata[0];
+                    switch (ndata[1]) {
+                        case '0': {
+                            ndata[1] = '';
+                            break;
+                        }
+                        case '1': {
+                            ndata[1] = 'int';
+                            break;
+                        }
+                        case '2': {
+                            ndata[1] = 'int';
+                            break;
+                        }
+                        case '3': {
+                            ndata[1] = 'int';
+                            break;
+                        }
+                        case '4': {
+                            ndata[1] = 'int';
+                            break;
+                        }
+                        case '5': {
+                            ndata[1] = 'float';
+                            break;
+                        }
+                        case '6': {
+                            ndata[1] = 'double';
+                            break;
+                        }
+                        case '7': {
+                            ndata[1] = 'bool';
+                            break;
+                        }
+                        case '8': {
+                            ndata[1] = 'time';
+                            break;
+                        }
+                        case '9': {
+                            ndata[1] = 'string';
+                            break;
+                        }
+                        case '10': {
+                            ndata[1] = 'ascii';
+                            break;
+                        }
+                        default: {
+                            ndata[1] = 'unknown';
+                        }
+                    }
+                    meta[key][ndata[0]] = ndata[1] + '|' + ndata[2];
+                }
+            }
+
+        }
+
         function getData(data, type, index) {
             let idata = '';
             let itype = type.split('|');
             switch (itype[0]) {
                 case 'string': {
                     let stringArray = new Uint16Array(data, index, itype[1] / 2);
-                    for (x in stringArray) {
+                    for (let x in stringArray) {
+                        if (stringArray[x] == 0) continue;
+                        idata = idata + String.fromCharCode(stringArray[x]);
+                    }
+                    break;
+                }
+                case 'ascii': {
+                    let stringArray = new Uint8Array(data, index, itype[1]);
+                    for (let x in stringArray) {
                         if (stringArray[x] == 0) continue;
                         idata = idata + String.fromCharCode(stringArray[x]);
                     }
@@ -58,7 +152,7 @@
                 case 'uint': {
                     let inumber = 0;
                     let intArray = new Uint8Array(data, index, itype[1] * 1);
-                    for (x in intArray) {
+                    for (let x in intArray) {
                         inumber = inumber + intArray[x] * Math.pow(256, x * 1);
                     }
                     idata = idata + inumber;
@@ -68,7 +162,7 @@
                     let inumber = 0;
                     let bit = itype[1] * 1;
                     let intArray = new Uint8Array(data, index, itype[1] * 1);
-                    for (x in intArray) {
+                    for (let x in intArray) {
                         inumber = inumber + intArray[x] * Math.pow(256, x * 1);
                     }
                     if (inumber >= ((256 ^ bit) / 2)) inumber = inumber - 256 ^ bit;
@@ -84,6 +178,15 @@
                     let intArray = new Float64Array(data, index, 1);
                     idata = idata + intArray[0];
                     break;
+                }
+                case 'time': {
+                    let intArray = new Uint32Array(data, index, 1);
+                    let idate = new Date(parseInt(intArray[0]) * 1000).toLocaleString().replace(/:\d{1,2}$/, ' ');
+                    idata = idate.getFullYear() + ' ' + (idate.getMonth() + 1) + ' ' + idate.getDate() + ' ' + idate.getHours() + ' ' + idate.getMinutes() + ' ' + idate.getSeconds();
+                    break;
+                }
+                case 'bool': {
+                    idata = '暂不支持';
                 }
                 default: {
                     idata = '暂不支持';
@@ -115,9 +218,11 @@
                 reader.onload = function (e) {
                     //读取完毕后输出结果
                     buffer = e.target.result;
+                    getaMeta();
                     parseData();
                 }
             }
+            this.files[0] = "";
         }
     </script>
     <input type="button" onclick="parseData();" value="处理数据">
