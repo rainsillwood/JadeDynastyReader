@@ -19,14 +19,20 @@
 
         function parseData() {
             iindex = 8;
+            document.getElementById('tph').innerHTML = Object.keys(meta).length;
             for (i in meta) {
+                document.getElementById('iph').innerHTML = i;
                 let dataLength = getData(buffer, 'uint|4', iindex) * 1;
                 let dataCount = getData(buffer, 'uint|4', iindex) * 1;
                 ilength = 0;
                 dataArray[i] = [];
+                document.getElementById('tdt').innerHTML = dataCount;
                 for (j = 0; j < dataCount; j++) {
+                    document.getElementById('idt').innerHTML = j;
                     dataArray[i][j] = {};
+                    document.getElementById('tel').innerHTML = Object.keys(meta[i]).length;
                     for (k in meta[i]) {
+                        document.getElementById('iel').innerHTML = k;
                         dataArray[i][j][k] = getData(buffer, meta[i][k], iindex);
                     }
                 }
@@ -92,6 +98,11 @@
 </head>
 
 <body>
+    <div>
+        <a>段数处理进度：</a><a id="iph"></a><a>/</a><a id="tph"></a></br>
+        <a>数据处理进度：</a><a id="idt"></a><a>/</a><a id="tdt"></a></br>
+        <a>属性处理进度：</a><a id="iel"></a><a>/</a><a id="tel"></a></br>
+    </div>
     <input type="file" name="" id="file" value="" />
     <script>
         input = document.getElementById('file');
