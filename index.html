@@ -8,7 +8,7 @@
     <title>Jade Dynasty Element Reader</title>
     <script type="text/javascript">
         var input; //input file
-        var buffer; buffer = new ArrayBuffer();
+        var buffer = new ArrayBuffer();
         var meta;
         var iindex, ilength;
         var dataArray;
@@ -19,7 +19,9 @@
             document.getElementById('tph').innerHTML = Object.keys(meta).length;
             for (let i in meta) {
                 if (meta[i].constructor == Number) {
-                    iindex = iindex + meta[i]; continue;
+                    dataArray[i].offset = iindex;
+                    dataArray[i].value = getData(buffer, 'unknown|' + meta[i], iindex);
+                    continue;
                 }
                 document.getElementById('iph').innerHTML = i;
                 let dataLength = getData(buffer, 'uint|4', iindex) * 1;
@@ -27,9 +29,9 @@
                 ilength = 0;
                 dataArray[i] = [];
                 document.getElementById('tdt').innerHTML = dataCount;
-               if (i.includes('NPC介绍')){
-                   alert('~');
-               }
+                if (i.includes('NPC介绍')) {
+                    alert('~');
+                }
                 for (let j = 0; j < dataCount; j++) {
                     document.getElementById('idt').innerHTML = j;
                     dataArray[i][j] = {};
@@ -41,6 +43,7 @@
                 }
                 if (ilength != dataLength * dataCount) {
                     alert(i + ' 数据格式不对');
+                    break;
                 }
             }
             alert('~');
@@ -56,16 +59,16 @@
             for (let m in metaArray) {
                 let key = metaArray[m].split('<')[1].split(',')[0];
                 let elements = metaArray[m].split('{')[1].split('}')[0].split('\t');
-                switch (key){
-                    case '传送符':{
-                    p = p + 1;
-                    meta[(m * 1 + p) + '占位1'] = 24;
-                    break;
-                }
-                    case 'NPC介绍服务':{
-                    p = p + 1;
-                    meta[(m * 1 + p) + '占位2'] = 19;
-                    break;
+                switch (key) {
+                    case '传送符': {
+                        p = p + 1;
+                        meta[(m * 1 + p) + '占位1'] = 24;
+                        break;
+                    }
+                    case 'NPC介绍服务': {
+                        p = p + 1;
+                        meta[(m * 1 + p) + '占位2'] = 19;
+                        break;
                     }
                 }
                 key = (m * 1 + p + 1) + '_' + key;
@@ -130,58 +133,50 @@
         }
 
         function getData(data, type, index) {
-            let idata = '';
+            let idata;
             let itype = type.split('|');
+            let dataViewer = new DataView(data, index, itype[1] * 1);
             switch (itype[0]) {
                 case 'string': {
-                    let stringArray = new Uint16Array(data, index, itype[1] / 2);
-                    for (let x in stringArray) {
-                        if (stringArray[x] == 0) continue;
-                        idata = idata + String.fromCharCode(stringArray[x]);
+                    idata = '';
+                    for (let x = 0; x < itype[1] / 2; x = x + 2) {
+                        if (dataViewer.getUint16(x, true) != 0) idata = idata + String.fromCharCode(dataViewer.getUint16(x, true));
                     }
                     break;
                 }
                 case 'ascii': {
-                    let stringArray = new Uint8Array(data, index, itype[1]);
-                    for (let x in stringArray) {
-                        if (stringArray[x] == 0) continue;
-                        idata = idata + String.fromCharCode(stringArray[x]);
+                    idata = '';
+                    for (let x = 0; x < itype[1] * 1; x++) {
+                        if (dataViewer.getUint8(x) != 0) idata = idata + String.fromCharCode(dataViewer.getUint16(x));
                     }
                     break;
                 }
                 case 'uint': {
-                    let inumber = 0;
-                    let intArray = new Uint8Array(data, index, itype[1] * 1);
-                    for (let x in intArray) {
-                        inumber = inumber + intArray[x] * Math.pow(256, x * 1);
+                    idata = 0;
+                    for (let x = 0; x < itype[1] * 1; x++) {
+                        idata = idata + dataViewer.getUint8(x) * Math.pow(256, x * 1);
                     }
-                    idata = idata + inumber;
                     break;
                 }
                 case 'int': {
-                    let inumber = 0;
+                    idata = 0;
                     let bit = itype[1] * 1;
-                    let intArray = new Uint8Array(data, index, itype[1] * 1);
-                    for (let x in intArray) {
-                        inumber = inumber + intArray[x] * Math.pow(256, x * 1);
+                    for (let x = 0; x < itype[1] * 1; x++) {
+                        idata = idata + dataViewer.getUint8(x) * Math.pow(256, x * 1);
                     }
-                    if (inumber >= ((256 ^ bit) / 2)) inumber = inumber - 256 ^ bit;
-                    idata = idata + inumber;
+                    if (idata >= ((256 ^ bit) / 2)) idata = idata - 256 ^ bit;
                     break;
                 }
                 case 'float': {
-                    let intArray = new Float32Array(data, index, 1);
-                    idata = idata + intArray[0];
+                    idata = dataViewer.getFloat32(0);
                     break;
                 }
                 case 'double': {
-                    let intArray = new Float64Array(data, index, 1);
-                    idata = idata + intArray[0];
+                    idata = dataViewer.getFloat64(0);
                     break;
                 }
                 case 'time': {
-                    let intArray = new Uint32Array(data, index, 1);
-                    let idate = new Date(parseInt(intArray[0]) * 1000).toLocaleString().replace(/:\d{1,2}$/, ' ');
+                    let idate = new Date(dataViewer.getInt32(0) * 1000).toLocaleString().replace(/:\d{1,2}$/, ' ');
                     idata = idate.getFullYear() + ' ' + (idate.getMonth() + 1) + ' ' + idate.getDate() + ' ' + idate.getHours() + ' ' + idate.getMinutes() + ' ' + idate.getSeconds();
                     break;
                 }
@@ -189,8 +184,11 @@
                     idata = '暂不支持';
                 }
                 default: {
-                    idata = '暂不支持';
-                    break;
+                    idata = '';
+                    for (let x = 0; x < itype[1] * 1; x++) {
+                        let char = (dataViewer.getUint8(x) < 16 ? '0' : '') + dataViewer.getUint8(x).toString(16);
+                        idata = idata + char;
+                    }
                 }
             }
             iindex = iindex + itype[1] * 1;
