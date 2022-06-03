@@ -12,6 +12,7 @@
         var indexTotal;//总索引
         var metaArray;//数据结构
         var dataArray;//数据体
+        var translateArray;//ID-名称对照表
 
         //从蓝羽配置产生数据结构
         function getaMeta() {
@@ -95,6 +96,7 @@
         //从数据结构读取element
         function parseData() {
             dataArray = {};//初始化数据体
+            translateArray = {};
             indexTotal = 0;//初始化索引
             //document.getElementById('tph').innerHTML = Object.keys(metaArray).length;
             for (let i in metaArray) {
@@ -106,15 +108,29 @@
                     alert(i + ' 数据格式不对');
                     break;
                 }
+                if (i.includes('装备')) {
+                    1 == 1;
+                }
                 dataArray[i] = [];//初始化段
                 for (let j = 0; j < dataCount; j++) {
                     dataArray[i][j] = {};//初始化数据
+                    let id, local;
                     for (let k in metaArray[i]['elements']) {
                         dataArray[i][j][k] = getData(buffer, metaArray[i]['elements'][k], indexTotal);
+                        if (k.split('_')[1] == 'ID') {
+                            id = dataArray[i][j][k];
+                        }
+                        if (k.split('_')[1] == '名称') {
+                            local = dataArray[i][j][k];
+                        }
+                    }
+                    if ((translateArray[id]) === undefined) {
+                        translateArray[id] = local;
+                    } else {
+                        translateArray[id] = translateArray[id] + '|' + local;
                     }
                 }
             }
-            alert('~');
         }
 
         //根据定位和数据类型读取二进制数据
@@ -140,7 +156,7 @@
                 case 'uint': {
                     idata = 0;
                     for (let x = 0; x < itype[1] * 1; x++) {
-                        idata = idata + dataViewer.getUint8(x) * Math.pow(256, x * 1);
+                        idata = idata + dataViewer.getUint8(x) * Math.pow(256, x);
                     }
                     break;
                 }
@@ -148,9 +164,11 @@
                     idata = 0;
                     let bit = itype[1] * 1;
                     for (let x = 0; x < itype[1] * 1; x++) {
-                        idata = idata + dataViewer.getUint8(x) * Math.pow(256, x * 1);
+                        idata = idata + dataViewer.getUint8(x) * Math.pow(256, x);
                     }
-                    if (idata >= ((256 ^ bit) / 2)) idata = idata - 256 ^ bit;
+                    if (idata >= (Math.pow(256, bit) / 2)) {
+                        idata = idata - 256 ^ bit
+                    };
                     break;
                 }
                 case 'float': {
@@ -180,35 +198,72 @@
             indexTotal = indexTotal + itype[1] * 1;
             return idata;
         }
+
+        function drawData(key) {
+            let tempData = dataArray[key];
+            let output = '<table border="1"><thead><tr>';
+            for (let i in metaArray[key].elements) {
+                output = output + '<th>' + i + '</th>';
+            }
+            output = output + '</tr></thead><tbody>';
+            for (let i in tempData) {
+                output = output + '<tr>';
+                for (let j in tempData[i]) {
+                    output = output + '<td>' + tempData[i][j] + '</td>';
+                }
+                output = output + '</tr>';
+            }
+            output = output + '</tbody></table>';
+            document.getElementById('output').innerHTML = output;
+        }
+
+        function translate() {
+            let output = '<table border="1">';
+            for (let i in translateArray) {
+                output = output + '<tr><td>' + i + '</td><td>' + translateArray[i] + '</td></tr>';
+            }
+            output = output + '</table>';
+            document.getElementById('output').innerHTML = output;
+        }
     </script>
 </head>
 
 <body>
-    <div>
-        <a>段数处理进度：</a><a id="iph"></a><a>/</a><a id="tph"></a></br>
-        <a>数据处理进度：</a><a id="idt"></a><a>/</a><a id="tdt"></a></br>
-        <a>属性处理进度：</a><a id="iel"></a><a>/</a><a id="tel"></a></br>
-    </div>
-    <input type="file" name="" id="file" value="" />
-    <script>
-        input = document.getElementById('file');
-        input.onchange = function () {
-            var file = this.files[0]; //获取文件
-            if (!!file) {
-                //读取本地文件
-                var reader = new FileReader();
-                reader.readAsArrayBuffer(file); //ArrayBuffer对象
-                reader.onload = function (e) {
-                    //读取完毕后输出结果
-                    buffer = e.target.result;
-                    getaMeta();
-                    parseData();
+    <div style="width: 99%;height: 99%;overflow: hidden;position: absolute;">
+        <div style="width: 260px;height: 100%;float:left;overflow: auto;">
+            <div>
+                <a>段数处理进度：</a><a id="iph"></a><a>/</a><a id="tph"></a></br>
+                <a>数据处理进度：</a><a id="idt"></a><a>/</a><a id="tdt"></a></br>
+                <a>属性处理进度：</a><a id="iel"></a><a>/</a><a id="tel"></a></br>
+            </div>
+            <input type="file" name="" id="file" value="" />
+            <script>
+                input = document.getElementById('file');
+                input.onchange = function () {
+                    var file = this.files[0]; //获取文件
+                    if (!!file) {
+                        //读取本地文件
+                        var reader = new FileReader();
+                        reader.readAsArrayBuffer(file); //ArrayBuffer对象
+                        reader.onload = function (e) {
+                            //读取完毕后输出结果
+                            buffer = e.target.result;
+                            getaMeta();
+                            parseData();
+                            let output = '<input type="button" onclick="translate()" value="ID-名称对照表"></br>';
+                            for (let i in dataArray) {
+                                output = output + '<input type="button" onclick="drawData(\'' + i + '\')" value=' + i + '></br>';
+                            }
+                            document.getElementById('array').innerHTML = output;
+                        }
+                    }
+                    this.files[0] = "";
                 }
-            }
-            this.files[0] = "";
-        }
-    </script>
-    <input type="button" onclick="parseData();" value="处理数据">
+            </script>
+            <div id="array"></div>
+        </div>
+        <div id="output" style="width:calc(100%-260px);height: calc(100%);margin-left:260px;overflow: auto;"></div>
+    </div>
 </body>
 
 </html>
