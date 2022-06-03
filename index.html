@@ -8,130 +8,116 @@
     <title>Jade Dynasty Element Reader</title>
     <script type="text/javascript">
         var input; //input file
-        var buffer = new ArrayBuffer();
-        var meta;
-        var iindex, ilength;
-        var dataArray;
+        var buffer = new ArrayBuffer();//数据缓存
+        var indexTotal;//总索引
+        var metaArray;//数据结构
+        var dataArray;//数据体
 
-        function parseData() {
-            dataArray = {};
-            iindex = 8;
-            document.getElementById('tph').innerHTML = Object.keys(meta).length;
-            for (let i in meta) {
-                if (meta[i].constructor == Number) {
-                    dataArray[i].offset = iindex;
-                    dataArray[i].value = getData(buffer, 'unknown|' + meta[i], iindex);
-                    continue;
-                }
-                document.getElementById('iph').innerHTML = i;
-                let dataLength = getData(buffer, 'uint|4', iindex) * 1;
-                let dataCount = getData(buffer, 'uint|4', iindex) * 1;
-                ilength = 0;
-                dataArray[i] = [];
-                document.getElementById('tdt').innerHTML = dataCount;
-                if (i.includes('NPC介绍')) {
-                    alert('~');
-                }
-                for (let j = 0; j < dataCount; j++) {
-                    document.getElementById('idt').innerHTML = j;
-                    dataArray[i][j] = {};
-                    document.getElementById('tel').innerHTML = Object.keys(meta[i]).length;
-                    for (let k in meta[i]) {
-                        document.getElementById('iel').innerHTML = k;
-                        dataArray[i][j][k] = getData(buffer, meta[i][k], iindex);
+        //从蓝羽配置产生数据结构
+        function getaMeta() {
+            //获取蓝羽配置文件
+            let rawFile = new XMLHttpRequest();
+            rawFile.open('GET', './zxdata.txt', false);
+            rawFile.send();
+            //按行产生数组
+            let arrayMeta = rawFile.responseText.split('\n');
+            //初始化数据体
+            metaArray = {};
+            for (let m in arrayMeta) {
+                let dataSection = arrayMeta[m].split('>')[0].split('<')[1].split(',');//获取段信息
+                let keySection = m + '_' + dataSection[0];//获取id
+                metaArray[keySection] = {};
+                metaArray[keySection].space = dataSection[1] * 1 - 4//获取间隔;
+                metaArray[keySection].length = dataSection[2] * 1//获取项长;
+                metaArray[keySection].name = dataSection[3] * 1;//获取项数
+                //获取段配置
+                let arrayElement = arrayMeta[m].split('{')[1].split('}')[0].split('\t');
+                let elementData = {};
+                for (let n in arrayElement) {
+                    let dataElement = arrayElement[n].replace('\*', '未知数据').split('|');
+                    let keyElement = n + '_' + dataElement[0];
+                    switch (dataElement[1]) {
+                        case '0': {
+                            elementData[keyElement] = 'unknown';
+                            break;
+                        }
+                        case '1': {
+                            elementData[keyElement] = 'int';
+                            break;
+                        }
+                        case '2': {
+                            elementData[keyElement] = 'int';
+                            break;
+                        }
+                        case '3': {
+                            elementData[keyElement] = 'int';
+                            break;
+                        }
+                        case '4': {
+                            elementData[keyElement] = 'int';
+                            break;
+                        }
+                        case '5': {
+                            elementData[keyElement] = 'float';
+                            break;
+                        }
+                        case '6': {
+                            elementData[keyElement] = 'double';
+                            break;
+                        }
+                        case '7': {
+                            elementData[keyElement] = 'bool';
+                            break;
+                        }
+                        case '8': {
+                            elementData[keyElement] = 'time';
+                            break;
+                        }
+                        case '9': {
+                            elementData[keyElement] = 'string';
+                            break;
+                        }
+                        case '10': {
+                            elementData[keyElement] = 'ascii';
+                            break;
+                        }
+                        default: {
+                            elementData[keyElement] = 'unknown';
+                        }
                     }
+                    elementData[keyElement] = elementData[keyElement] + '|' + dataElement[2];
+                    metaArray[keySection].elements = elementData;
                 }
-                if (ilength != dataLength * dataCount) {
+            }
+
+        }
+
+        //从数据结构读取element
+        function parseData() {
+            dataArray = {};//初始化数据体
+            indexTotal = 0;//初始化索引
+            //document.getElementById('tph').innerHTML = Object.keys(metaArray).length;
+            for (let i in metaArray) {
+                indexTotal = indexTotal + metaArray[i].space;//跳过段前空档
+                //document.getElementById('iph').innerHTML = i;
+                let dataLength = getData(buffer, 'uint|4', indexTotal) * 1;
+                let dataCount = getData(buffer, 'uint|4', indexTotal) * 1;
+                if (dataLength != metaArray[i].length) {
                     alert(i + ' 数据格式不对');
                     break;
+                }
+                dataArray[i] = [];//初始化段
+                for (let j = 0; j < dataCount; j++) {
+                    dataArray[i][j] = {};//初始化数据
+                    for (let k in metaArray[i]['elements']) {
+                        dataArray[i][j][k] = getData(buffer, metaArray[i]['elements'][k], indexTotal);
+                    }
                 }
             }
             alert('~');
         }
 
-        function getaMeta() {
-            let rawFile = new XMLHttpRequest();
-            rawFile.open('GET', './zxdata.txt', false);
-            rawFile.send();
-            let metaArray = rawFile.responseText.split('\n');
-            meta = {};
-            let p = 0;
-            for (let m in metaArray) {
-                let key = metaArray[m].split('<')[1].split(',')[0];
-                let elements = metaArray[m].split('{')[1].split('}')[0].split('\t');
-                switch (key) {
-                    case '传送符': {
-                        p = p + 1;
-                        meta[(m * 1 + p) + '占位1'] = 24;
-                        break;
-                    }
-                    case 'NPC介绍服务': {
-                        p = p + 1;
-                        meta[(m * 1 + p) + '占位2'] = 19;
-                        break;
-                    }
-                }
-                key = (m * 1 + p + 1) + '_' + key;
-                meta[key] = {};
-                for (let n in elements) {
-                    let ndata = elements[n].split('|');
-                    ndata[0] = ndata[0].replace('*', '未知数据');
-                    ndata[0] = (n * 1 + 1) + '_' + ndata[0];
-                    switch (ndata[1]) {
-                        case '0': {
-                            ndata[1] = '';
-                            break;
-                        }
-                        case '1': {
-                            ndata[1] = 'int';
-                            break;
-                        }
-                        case '2': {
-                            ndata[1] = 'int';
-                            break;
-                        }
-                        case '3': {
-                            ndata[1] = 'int';
-                            break;
-                        }
-                        case '4': {
-                            ndata[1] = 'int';
-                            break;
-                        }
-                        case '5': {
-                            ndata[1] = 'float';
-                            break;
-                        }
-                        case '6': {
-                            ndata[1] = 'double';
-                            break;
-                        }
-                        case '7': {
-                            ndata[1] = 'bool';
-                            break;
-                        }
-                        case '8': {
-                            ndata[1] = 'time';
-                            break;
-                        }
-                        case '9': {
-                            ndata[1] = 'string';
-                            break;
-                        }
-                        case '10': {
-                            ndata[1] = 'ascii';
-                            break;
-                        }
-                        default: {
-                            ndata[1] = 'unknown';
-                        }
-                    }
-                    meta[key][ndata[0]] = ndata[1] + '|' + ndata[2];
-                }
-            }
-
-        }
-
+        //根据定位和数据类型读取二进制数据
         function getData(data, type, index) {
             let idata;
             let itype = type.split('|');
@@ -168,11 +154,11 @@
                     break;
                 }
                 case 'float': {
-                    idata = dataViewer.getFloat32(0);
+                    idata = dataViewer.getFloat32(0, true);
                     break;
                 }
                 case 'double': {
-                    idata = dataViewer.getFloat64(0);
+                    idata = dataViewer.getFloat64(0, true);
                     break;
                 }
                 case 'time': {
@@ -191,8 +177,7 @@
                     }
                 }
             }
-            iindex = iindex + itype[1] * 1;
-            ilength = ilength + itype[1] * 1;
+            indexTotal = indexTotal + itype[1] * 1;
             return idata;
         }
     </script>
