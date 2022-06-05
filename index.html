@@ -12,6 +12,7 @@
         var indexTotal;//总索引
         var metaArray;//数据结构
         var dataArray;//数据体
+        var boxArray;
         var translateArray;//ID-名称对照表
 
         //从蓝羽配置产生数据结构
@@ -225,6 +226,96 @@
             output = output + '</table>';
             document.getElementById('output').innerHTML = output;
         }
+
+        function showFunctions() {
+            let output = '<input type="button" onclick="getBoxes()" value="锦盒礼包">'
+            document.getElementById('functions').innerHTML = output;
+        }
+
+        function getBoxes() {
+            //原始数据
+            let arrayBox = dataArray['94_锦盒礼包'];
+            boxArray = {};
+            for (let i in arrayBox) {
+                let boxData = arrayBox[i];
+                let dataBox = {};
+                dataBox.name = boxData['1_名称'];
+                dataBox.level = boxData['5_等级要求'];
+                dataBox.need = [];
+                dataBox.need[0] = {};
+                dataBox.need[0].gold = boxData['22_需要金钱'];
+                if (boxData['18_所需工具1'] > 0) {
+                    dataBox.need[1] = {};
+                    dataBox.need[1][boxData['18_所需工具1']] = boxData['19_数量']
+                }
+                if (boxData['20_所需工具2'] > 0) {
+                    dataBox.need[2] = {};
+                    dataBox.need[2][boxData['20_所需工具2']] = boxData['21_数量']
+                }
+                let order = 0
+                let itemID = 0;
+                dataBox.contain = {};
+                for (let j in boxData) {
+                    if (j.includes('物品') && (boxData[j] > 0)) {
+                        order = 1;
+                        itemID = boxData[j];
+                        dataBox.contain[itemID] = {};
+                        dataBox.contain[itemID].name = translateArray[itemID];
+                    } else if (order == 1) {
+                        dataBox.contain[itemID].chance = boxData[j];
+                        order = 2;
+                    } else if (order == 2) {
+                        dataBox.contain[itemID].countMax = boxData[j];
+                        order = 3;
+                    } else if (order == 3) {
+                        dataBox.contain[itemID].countMin = boxData[j];
+                        order = 4;
+                    } else if (order == 4) {
+                        dataBox.contain[itemID].bind = boxData[j];
+                        order = 5;
+                    } else if (order == 5) {
+                        dataBox.contain[itemID].limit = boxData[j];
+                        order = 0;
+                    }
+                }
+                boxArray[boxData['0_ID']] = dataBox;
+            }
+            for (let i in boxArray) {
+                let temp = boxArray[i];
+                for (let j in temp.contain) {
+                    getContain(temp, j * 1);
+                }
+            }
+            for (let i in boxArray) {
+                if (boxArray[i].isChild == 1) {
+                    delete boxArray[i];
+                }
+            }
+        }
+
+        function getContain(box, itemID) {
+            let tempItem = boxArray[itemID];
+            if (!tempItem) {
+                return;
+            }
+            else {
+                tempItem.isChild = 1;
+                for (let i in tempItem.contain) {
+                    getContain(tempItem, i);
+                }
+                for (let i in tempItem.contain) {
+                    let tempID = i * 1;
+                    if (!box.contain[tempID]) {
+                        box.contain[tempID] = tempItem.contain[tempID];
+                    } else {
+                        box.contain[tempID]['countMax'] = box.contain[tempID]['countMax'] + tempItem.contain[tempID]['countMax'];
+                        box.contain[tempID]['countMin'] = box.contain[tempID]['countMin'] + tempItem.contain[tempID]['countMin'];
+                    }
+                }
+                delete box.contain[itemID];
+                return
+            }
+        }
     </script>
 </head>
 
@@ -236,9 +327,27 @@
                 <a>数据处理进度：</a><a id="idt"></a><a>/</a><a id="tdt"></a></br>
                 <a>属性处理进度：</a><a id="iel"></a><a>/</a><a id="tel"></a></br>
             </div>
-            <input type="file" name="" id="file" value="" />
+            数据格式文件：
+            <input type="file" name="" id="metaFile" value="" /></br>
             <script>
-                input = document.getElementById('file');
+                input = document.getElementById('metaFile');
+                input.onchange = function () {
+                    var file = this.files[0]; //获取文件
+                    if (!!file) {
+                        //读取本地文件
+                        var reader = new FileReader();
+                        reader.readAsArrayBuffer(file); //ArrayBuffer对象
+                        reader.onload = function (e) {
+                            getaMeta();
+                        }
+                    }
+                    this.files[0] = "";
+                }
+            </script>
+            数据文件：
+            <input type="file" name="" id="elFile" value="" /></br>
+            <script>
+                input = document.getElementById('elFile');
                 input.onchange = function () {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
@@ -248,8 +357,8 @@
                         reader.onload = function (e) {
                             //读取完毕后输出结果
                             buffer = e.target.result;
-                            getaMeta();
                             parseData();
+                            showFunctions();
                             let output = '<input type="button" onclick="translate()" value="ID-名称对照表"></br>';
                             for (let i in dataArray) {
                                 output = output + '<input type="button" onclick="drawData(\'' + i + '\')" value=' + i + '></br>';
@@ -262,7 +371,10 @@
             </script>
             <div id="array"></div>
         </div>
-        <div id="output" style="width:calc(100%-260px);height: calc(100%);margin-left:260px;overflow: auto;"></div>
+        <div style="width:calc(100% - 260px);height: 100%;margin-left:260px;overflow: hidden;position: absolute;">
+            <div id="functions" style="width: 100%;height: 50px;overflow: auto;"></div>
+            <div id="output" style="width: 100%;height: calc(100% - 50px);overflow: auto;"></div>
+        </div>
     </div>
 </body>
 
