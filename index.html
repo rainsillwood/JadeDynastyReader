@@ -8,100 +8,21 @@
     <title>Jade Dynasty Element Reader</title>
     <script type="text/javascript">
         var input; //input file
-        var buffer = new ArrayBuffer();//数据缓存
-        var indexTotal;//总索引
-        var metaArray;//数据结构
-        var dataArray;//数据体
+        var buffer = new ArrayBuffer(); //数据缓存
+        var indexTotal; //总索引
+        var metaArray; //数据结构
+        var dataArray; //数据体
         var boxArray;
-        var translateArray;//ID-名称对照表
-
-        //从蓝羽配置产生数据结构
-        function getaMeta() {
-            //获取蓝羽配置文件
-            let rawFile = new XMLHttpRequest();
-            rawFile.open('GET', './zxdata.txt', false);
-            rawFile.send();
-            //按行产生数组
-            let arrayMeta = rawFile.responseText.split('\n');
-            //初始化数据体
-            metaArray = {};
-            for (let m in arrayMeta) {
-                let dataSection = arrayMeta[m].split('>')[0].split('<')[1].split(',');//获取段信息
-                let keySection = m + '_' + dataSection[0];//获取id
-                metaArray[keySection] = {};
-                metaArray[keySection].space = dataSection[1] * 1 - 4//获取间隔;
-                metaArray[keySection].length = dataSection[2] * 1//获取项长;
-                metaArray[keySection].name = dataSection[3] * 1;//获取项数
-                //获取段配置
-                let arrayElement = arrayMeta[m].split('{')[1].split('}')[0].split('\t');
-                let elementData = {};
-                for (let n in arrayElement) {
-                    let dataElement = arrayElement[n].replace('\*', '未知数据').split('|');
-                    let keyElement = n + '_' + dataElement[0];
-                    switch (dataElement[1]) {
-                        case '0': {
-                            elementData[keyElement] = 'unknown';
-                            break;
-                        }
-                        case '1': {
-                            elementData[keyElement] = 'int';
-                            break;
-                        }
-                        case '2': {
-                            elementData[keyElement] = 'int';
-                            break;
-                        }
-                        case '3': {
-                            elementData[keyElement] = 'int';
-                            break;
-                        }
-                        case '4': {
-                            elementData[keyElement] = 'int';
-                            break;
-                        }
-                        case '5': {
-                            elementData[keyElement] = 'float';
-                            break;
-                        }
-                        case '6': {
-                            elementData[keyElement] = 'double';
-                            break;
-                        }
-                        case '7': {
-                            elementData[keyElement] = 'bool';
-                            break;
-                        }
-                        case '8': {
-                            elementData[keyElement] = 'time';
-                            break;
-                        }
-                        case '9': {
-                            elementData[keyElement] = 'string';
-                            break;
-                        }
-                        case '10': {
-                            elementData[keyElement] = 'ascii';
-                            break;
-                        }
-                        default: {
-                            elementData[keyElement] = 'unknown';
-                        }
-                    }
-                    elementData[keyElement] = elementData[keyElement] + '|' + dataElement[2];
-                    metaArray[keySection].elements = elementData;
-                }
-            }
-
-        }
+        var translateArray; //ID-名称对照表
 
         //从数据结构读取element
         function parseData() {
-            dataArray = {};//初始化数据体
+            dataArray = {}; //初始化数据体
             translateArray = {};
-            indexTotal = 0;//初始化索引
+            indexTotal = 0; //初始化索引
             //document.getElementById('tph').innerHTML = Object.keys(metaArray).length;
             for (let i in metaArray) {
-                indexTotal = indexTotal + metaArray[i].space;//跳过段前空档
+                indexTotal = indexTotal + metaArray[i].space; //跳过段前空档
                 //document.getElementById('iph').innerHTML = i;
                 let dataLength = getData(buffer, 'uint|4', indexTotal) * 1;
                 let dataCount = getData(buffer, 'uint|4', indexTotal) * 1;
@@ -109,12 +30,9 @@
                     alert(i + ' 数据格式不对');
                     break;
                 }
-                if (i.includes('装备')) {
-                    1 == 1;
-                }
-                dataArray[i] = [];//初始化段
+                dataArray[i] = []; //初始化段
                 for (let j = 0; j < dataCount; j++) {
-                    dataArray[i][j] = {};//初始化数据
+                    dataArray[i][j] = {}; //初始化数据
                     let id, local;
                     for (let k in metaArray[i]['elements']) {
                         dataArray[i][j][k] = getData(buffer, metaArray[i]['elements'][k], indexTotal);
@@ -140,61 +58,70 @@
             let itype = type.split('|');
             let dataViewer = new DataView(data, index, itype[1] * 1);
             switch (itype[0]) {
-                case 'string': {
-                    idata = '';
-                    for (let x = 0; x < itype[1] / 2; x = x + 2) {
-                        if (dataViewer.getUint16(x, true) != 0) idata = idata + String.fromCharCode(dataViewer.getUint16(x, true));
+                case 'string':
+                    {
+                        idata = '';
+                        for (let x = 0; x < itype[1] / 2; x = x + 2) {
+                            if (dataViewer.getUint16(x, true) != 0) idata = idata + String.fromCharCode(dataViewer.getUint16(x, true));
+                        }
+                        break;
                     }
-                    break;
-                }
-                case 'ascii': {
-                    idata = '';
-                    for (let x = 0; x < itype[1] * 1; x++) {
-                        if (dataViewer.getUint8(x) != 0) idata = idata + String.fromCharCode(dataViewer.getUint16(x));
+                case 'ascii':
+                    {
+                        idata = '';
+                        for (let x = 0; x < itype[1] * 1; x++) {
+                            if (dataViewer.getUint8(x) != 0) idata = idata + String.fromCharCode(dataViewer.getUint16(x));
+                        }
+                        break;
                     }
-                    break;
-                }
-                case 'uint': {
-                    idata = 0;
-                    for (let x = 0; x < itype[1] * 1; x++) {
-                        idata = idata + dataViewer.getUint8(x) * Math.pow(256, x);
+                case 'uint':
+                    {
+                        idata = 0;
+                        for (let x = 0; x < itype[1] * 1; x++) {
+                            idata = idata + dataViewer.getUint8(x) * Math.pow(256, x);
+                        }
+                        break;
                     }
-                    break;
-                }
-                case 'int': {
-                    idata = 0;
-                    let bit = itype[1] * 1;
-                    for (let x = 0; x < itype[1] * 1; x++) {
-                        idata = idata + dataViewer.getUint8(x) * Math.pow(256, x);
+                case 'int':
+                    {
+                        idata = 0;
+                        let bit = itype[1] * 1;
+                        for (let x = 0; x < itype[1] * 1; x++) {
+                            idata = idata + dataViewer.getUint8(x) * Math.pow(256, x);
+                        }
+                        if (idata >= (Math.pow(256, bit) / 2)) {
+                            idata = idata - 256 ^ bit
+                        };
+                        break;
                     }
-                    if (idata >= (Math.pow(256, bit) / 2)) {
-                        idata = idata - 256 ^ bit
-                    };
-                    break;
-                }
-                case 'float': {
-                    idata = dataViewer.getFloat32(0, true);
-                    break;
-                }
-                case 'double': {
-                    idata = dataViewer.getFloat64(0, true);
-                    break;
-                }
-                case 'time': {
-                    let idate = new Date(dataViewer.getInt32(0) * 1000).toLocaleString().replace(/:\d{1,2}$/, ' ');
-                    idata = idate.getFullYear() + ' ' + (idate.getMonth() + 1) + ' ' + idate.getDate() + ' ' + idate.getHours() + ' ' + idate.getMinutes() + ' ' + idate.getSeconds();
-                    break;
-                }
-                case 'bool': {
-                    idata = '暂不支持';
-                }
-                default: {
-                    idata = '';
-                    for (let x = 0; x < itype[1] * 1; x++) {
-                        let char = (dataViewer.getUint8(x) < 16 ? '0' : '') + dataViewer.getUint8(x).toString(16);
-                        idata = idata + char;
+                case 'float':
+                    {
+                        idata = dataViewer.getFloat32(0, true);
+                        break;
                     }
-                }
+                case 'double':
+                    {
+                        idata = dataViewer.getFloat64(0, true);
+                        break;
+                    }
+                case 'time':
+                    {
+                        let idate = new Date(dataViewer.getInt32(0) * 1000).toLocaleString().replace(/:\d{1,2}$/, ' ');
+                        idata = idate.getFullYear() + ' ' + (idate.getMonth() + 1) + ' ' + idate.getDate() + ' ' + idate.getHours() + ' ' + idate.getMinutes() + ' ' + idate.getSeconds();
+                        break;
+                    }
+                case 'bool':
+                    {
+                        idata = '暂不支持';
+                    }
+                default:
+                    {
+                        idata = '';
+                        for (let x = 0; x < itype[1] * 1; x++) {
+                            let char = (dataViewer.getUint8(x) < 16 ? '0' : '') + dataViewer.getUint8(x).toString(16);
+                            idata = idata + char;
+                        }
+                    }
             }
             indexTotal = indexTotal + itype[1] * 1;
             return idata;
@@ -297,8 +224,7 @@
             let tempItem = boxArray[itemID];
             if (!tempItem) {
                 return;
-            }
-            else {
+            } else {
                 tempItem.isChild = 1;
                 for (let i in tempItem.contain) {
                     getContain(tempItem, i);
@@ -323,22 +249,112 @@
     <div style="width: 99%;height: 99%;overflow: hidden;position: absolute;">
         <div style="width: 260px;height: 100%;float:left;overflow: auto;">
             <div>
-                <a>段数处理进度：</a><a id="iph"></a><a>/</a><a id="tph"></a></br>
-                <a>数据处理进度：</a><a id="idt"></a><a>/</a><a id="tdt"></a></br>
-                <a>属性处理进度：</a><a id="iel"></a><a>/</a><a id="tel"></a></br>
+                <a>段数处理进度：</a>
+                <a id="iph"></a><a>/</a>
+                <a id="tph"></a>
+                </br>
+                <a>数据处理进度：</a>
+                <a id="idt"></a><a>/</a>
+                <a id="tdt"></a>
+                </br>
+                <a>属性处理进度：</a>
+                <a id="iel"></a><a>/</a>
+                <a id="tel"></a>
+                </br>
             </div>
             数据格式文件：
             <input type="file" name="" id="metaFile" value="" /></br>
             <script>
                 input = document.getElementById('metaFile');
-                input.onchange = function () {
+                input.onchange = function() {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
-                        reader.readAsArrayBuffer(file); //ArrayBuffer对象
-                        reader.onload = function (e) {
-                            getaMeta();
+                        reader.readAsText(file) //ArrayBuffer对象
+                        reader.onload = function(e) {
+                            //按行产生数组
+                            let arrayMeta = reader.result.split('\n');
+                            //初始化数据体
+                            metaArray = {};
+                            for (let m in arrayMeta) {
+                                let dataSection = arrayMeta[m].split('>')[0].split('<')[1].split(','); //获取段信息
+                                let keySection = m + '_' + dataSection[0]; //获取id
+                                metaArray[keySection] = {};
+                                metaArray[keySection].space = dataSection[1] * 1 - 4 //获取间隔;
+                                metaArray[keySection].length = dataSection[2] * 1 //获取项长;
+                                metaArray[keySection].name = dataSection[3] * 1; //获取项数
+                                //获取段配置
+                                let arrayElement = arrayMeta[m].split('{')[1].split('}')[0].split('\t');
+                                let elementData = {};
+                                for (let n in arrayElement) {
+                                    let dataElement = arrayElement[n].replace('\*', '未知数据').split('|');
+                                    let keyElement = n + '_' + dataElement[0];
+                                    switch (dataElement[1]) {
+                                        case '0':
+                                            {
+                                                elementData[keyElement] = 'unknown';
+                                                break;
+                                            }
+                                        case '1':
+                                            {
+                                                elementData[keyElement] = 'int';
+                                                break;
+                                            }
+                                        case '2':
+                                            {
+                                                elementData[keyElement] = 'int';
+                                                break;
+                                            }
+                                        case '3':
+                                            {
+                                                elementData[keyElement] = 'int';
+                                                break;
+                                            }
+                                        case '4':
+                                            {
+                                                elementData[keyElement] = 'int';
+                                                break;
+                                            }
+                                        case '5':
+                                            {
+                                                elementData[keyElement] = 'float';
+                                                break;
+                                            }
+                                        case '6':
+                                            {
+                                                elementData[keyElement] = 'double';
+                                                break;
+                                            }
+                                        case '7':
+                                            {
+                                                elementData[keyElement] = 'bool';
+                                                break;
+                                            }
+                                        case '8':
+                                            {
+                                                elementData[keyElement] = 'time';
+                                                break;
+                                            }
+                                        case '9':
+                                            {
+                                                elementData[keyElement] = 'string';
+                                                break;
+                                            }
+                                        case '10':
+                                            {
+                                                elementData[keyElement] = 'ascii';
+                                                break;
+                                            }
+                                        default:
+                                            {
+                                                elementData[keyElement] = 'unknown';
+                                            }
+                                    }
+                                    elementData[keyElement] = elementData[keyElement] + '|' + dataElement[2];
+                                    metaArray[keySection].elements = elementData;
+                                }
+                            }
                         }
                     }
                     this.files[0] = "";
@@ -348,13 +364,13 @@
             <input type="file" name="" id="elFile" value="" /></br>
             <script>
                 input = document.getElementById('elFile');
-                input.onchange = function () {
+                input.onchange = function() {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsArrayBuffer(file); //ArrayBuffer对象
-                        reader.onload = function (e) {
+                        reader.onload = function(e) {
                             //读取完毕后输出结果
                             buffer = e.target.result;
                             parseData();
