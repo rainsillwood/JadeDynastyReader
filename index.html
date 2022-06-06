@@ -213,11 +213,26 @@
                     getContain(temp, j * 1);
                 }
             }
+            let outhead = '<table border="1"><thead><tr>';
+            let outbody = '';
+            let tempkey = '';
             for (let i in boxArray) {
                 if (boxArray[i].isChild == 1) {
                     delete boxArray[i];
+                } else {
+                    let tempData = boxArray[i].contain;
+                    outbody = outbody + '<tr>';
+                    outhead = outhead + '<th>' + i + '</th>';
+                    for (let j in tempData) {
+                        outbody = outbody + '<td>' + tempData[i][j] + '</td>';
+                    }
+                    outbody = outbody + '</tr>';
+
                 }
             }
+            outhead = outhead + '</tr></thead><tbody>';
+            outbody = outbody + '</tbody></table>';
+            document.getElementById('output').innerHTML = outhead + outbody;
         }
 
         function getContain(box, itemID) {
@@ -266,13 +281,13 @@
             <input type="file" name="" id="metaFile" value="" /></br>
             <script>
                 input = document.getElementById('metaFile');
-                input.onchange = function() {
+                input.onchange = function () {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsText(file) //ArrayBuffer对象
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             //按行产生数组
                             let arrayMeta = reader.result.split('\n');
                             //初始化数据体
@@ -364,13 +379,13 @@
             <input type="file" name="" id="elFile" value="" /></br>
             <script>
                 input = document.getElementById('elFile');
-                input.onchange = function() {
+                input.onchange = function () {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsArrayBuffer(file); //ArrayBuffer对象
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             //读取完毕后输出结果
                             buffer = e.target.result;
                             parseData();
