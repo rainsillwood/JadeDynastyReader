@@ -14,6 +14,12 @@
         var dataArray; //数据体
         var boxArray;
         var translateArray; //ID-名称对照表
+        const types = [
+            '属性', //属性
+            '装备|药品|材料|炼器祝福符|传送符|替身|飞天神符|任务品|离线道具|生产配方|任务发生器|凭证物品|矿产|精炼符|状态符|技能石|图样|双倍经验物品|增益物品|坐骑|双飞翼', //物品
+            '怪物|NPC|', //NPC
+            '装备大类|装备小类|药品大类|药品小类|材料大类|材料小类|掉落分类|怪物分类|配方大类|配方小类|矿产分类|烟花|图样大类|图样小类' //分类
+        ];
 
         //从数据结构读取element
         function parseData() {
@@ -44,9 +50,24 @@
                         }
                     }
                     if ((translateArray[id]) === undefined) {
-                        translateArray[id] = local;
+                        translateArray[id] = [];
                     } else {
-                        translateArray[id] = translateArray[id] + '|' + local;
+                        if (types[0].includes(i.split('_')[1])) {
+                            type = 1;
+                        } else if (types[1].includes(i.split('_')[1])) {
+                            type = 2;
+                        } else if (types[2].includes(i.split('_')[1])) {
+                            type = 3;
+                        } else if (types[3].includes(i.split('_')[1])) {
+                            type = 4;
+                        } else {
+                            type = 0;
+                        }
+                        if ((translateArray[id])[type] === undefined) {
+                            (translateArray[id])[type] = local;
+                        } else {
+                            translateArray[id][type] = translateArray[id][type] + '|' + local;
+                        }
                     }
                 }
             }
@@ -148,7 +169,12 @@
         function translate() {
             let output = '<table border="1">';
             for (let i in translateArray) {
-                output = output + '<tr><td>' + i + '</td><td>' + translateArray[i] + '</td></tr>';
+                output = output + '<tr><td>' + i + '</td>';
+                for (j in translateArray[i]) {
+                    output = output + '<td>' + ((translateArray[i][j] === undefined) ? '' :
+                        translateArray[i][j]) + '</td>';
+                }
+                output = output + '</tr>';
             }
             output = output + '</table>';
             document.getElementById('output').innerHTML = output;
@@ -281,13 +307,13 @@
             <input type="file" name="" id="metaFile" value="" /></br>
             <script>
                 input = document.getElementById('metaFile');
-                input.onchange = function () {
+                input.onchange = function() {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsText(file) //ArrayBuffer对象
-                        reader.onload = function (e) {
+                        reader.onload = function(e) {
                             //按行产生数组
                             let arrayMeta = reader.result.split('\n');
                             //初始化数据体
@@ -379,13 +405,13 @@
             <input type="file" name="" id="elFile" value="" /></br>
             <script>
                 input = document.getElementById('elFile');
-                input.onchange = function () {
+                input.onchange = function() {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsArrayBuffer(file); //ArrayBuffer对象
-                        reader.onload = function (e) {
+                        reader.onload = function(e) {
                             //读取完毕后输出结果
                             buffer = e.target.result;
                             parseData();
