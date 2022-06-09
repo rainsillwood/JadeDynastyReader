@@ -15,12 +15,14 @@
         var boxArray;
         var translateArray; //ID-名称对照表
         const types = [
-            '属性', //属性
-            '装备|药品|材料|炼器祝福符|传送符|替身|飞天神符|复活卷轴|任务品|离线道具|任务发生器|凭证物品|矿产|精炼符|状态符|技能石|图样|双倍经验物品|增益物品|坐骑|双飞翼', //物品
-            '生产配方',//配方
-            '怪物|NPC|', //NPC
-            '掉落表',//掉落表
-            '装备大类|装备小类|药品大类|药品小类|材料大类|材料小类|掉落分类|怪物分类|配方大类|配方小类|矿产分类|烟花|图样大类|图样小类' //分类
+            ['属性'], //属性
+            ['装备', '药品', '材料', '炼器祝福符', '传送符', '替身', '飞天神符', '复活卷轴', '任务品', '离线道具', '任务发生器', '凭证物品', '烟花', '精炼符', '状态符', '技能石', '图样', '双倍经验物品', '增益物品', '坐骑', '双飞翼', '抽奖彩票', '法宝及飞宝', '聚气物品', '血炼及灌魔物品', '精力补充物品', '表情', '宠物', '宠物食物', '宠物装备', '宠物综合药品', '宠物强化道具', '宠物修炼道具', '文本书籍', '器魄', '战场物品', '锦盒礼包', 'VIP卡', '幻灵石', '幻灵石相关物品', '星盘', '星盘充能石', '混元天晶', '彩票赠品', '宝石', '宝石魔印', '宝石星砂', '宝石相关物品', '新彩票赠品', '在线小礼包', '银泰网密匙', '远行囊', '元婴', '符语', '战旗', '星座', '星座精力石', '药品存储瓶', '台历', '赠送彩票', '贺岁元宵', '消费积分礼包', '炼丹系统', '丹药', '符文', '染色剂', '仙裔时装属性', '仙裔玩具', '仙裔读物', '阵灵人物', '阵灵法宝', '仙裔宝宝牛奶', '仙裔宝宝阅历丹', '动作加速灵才', '轩辕策', '新礼包', '称号发放', '新版商城红包', '轩辕策修炼道具', '佩章', '四灵壁', '丹青头像', '自用礼包', '装备礼包', '书籍', '棒棒糖', '符咒', '空中书', '星辰'], //物品
+            ['生产配方'],//配方
+            ['怪物', 'NPC'], //NPC
+            ['掉落表'],//掉落表
+            ['矿产'],//矿产
+            ['属性称号', '宝宝称号列表'],//属性称号
+            ['装备大类', '装备小类', '药品大类', '药品小类', '材料大类', '材料小类', '掉落分类', '怪物分类', '配方大类', '配方小类', '矿产分类', '图样大类', '图样小类'] //分类
         ];
 
         //从数据结构读取element
@@ -38,6 +40,18 @@
                     alert(i + ' 数据格式不对');
                     break;
                 }
+                let type;
+                if (types[0].includes(i.split('_')[1])) {
+                    type = 1;
+                } else if (types[1].includes(i.split('_')[1])) {
+                    type = 2;
+                } else if (types[2].includes(i.split('_')[1])) {
+                    type = 3;
+                } else if (types[3].includes(i.split('_')[1])) {
+                    type = 4;
+                } else {
+                    type = 0;
+                }
                 dataArray[i] = []; //初始化段
                 for (let j = 0; j < dataCount; j++) {
                     dataArray[i][j] = {}; //初始化数据
@@ -53,23 +67,11 @@
                     }
                     if ((translateArray[id]) === undefined) {
                         translateArray[id] = [];
+                    }
+                    if (translateArray[id][type] === undefined) {
+                        translateArray[id][type] = local;
                     } else {
-                        if (types[0].includes(i.split('_')[1])) {
-                            type = 1;
-                        } else if (types[1].includes(i.split('_')[1])) {
-                            type = 2;
-                        } else if (types[2].includes(i.split('_')[1])) {
-                            type = 3;
-                        } else if (types[3].includes(i.split('_')[1])) {
-                            type = 4;
-                        } else {
-                            type = 0;
-                        }
-                        if ((translateArray[id])[type] === undefined) {
-                            (translateArray[id])[type] = local;
-                        } else {
-                            translateArray[id][type] = translateArray[id][type] + '|' + local;
-                        }
+                        translateArray[id][type] = translateArray[id][type] + '|' + local;
                     }
                 }
             }
@@ -172,7 +174,7 @@
             let output = '<table border="1">';
             for (let i in translateArray) {
                 output = output + '<tr><td>' + i + '</td>';
-                for (j in translateArray[i]) {
+                for (j = 0; j < 5; j++) {
                     output = output + '<td>' + ((translateArray[i][j] === undefined) ? '' :
                         translateArray[i][j]) + '</td>';
                 }
@@ -183,7 +185,8 @@
         }
 
         function showFunctions() {
-            let output = '<input type="button" onclick="getBoxes()" value="锦盒礼包">'
+            let output = '<input type="button" onclick="copyInner()" value="复制内容">'
+            output=output+'<input type="button" onclick="getBoxes()" value="锦盒礼包">'
             document.getElementById('functions').innerHTML = output;
         }
 
@@ -285,6 +288,10 @@
                 return
             }
         }
+
+        function copyInner(){
+            let inner=document.getElementById
+        }
     </script>
 </head>
 
@@ -309,13 +316,13 @@
             <input type="file" name="" id="metaFile" value="" /></br>
             <script>
                 input = document.getElementById('metaFile');
-                input.onchange = function() {
+                input.onchange = function () {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsText(file) //ArrayBuffer对象
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             //按行产生数组
                             let arrayMeta = reader.result.split('\n');
                             //初始化数据体
@@ -407,13 +414,13 @@
             <input type="file" name="" id="elFile" value="" /></br>
             <script>
                 input = document.getElementById('elFile');
-                input.onchange = function() {
+                input.onchange = function () {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsArrayBuffer(file); //ArrayBuffer对象
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             //读取完毕后输出结果
                             buffer = e.target.result;
                             parseData();
