@@ -13,22 +13,22 @@
         var metaArray; //数据结构
         var dataArray; //数据体
         var boxArray;
-        var translateArray; //ID-名称对照表
+        var localArray; //ID-名称对照表
         const types = [
-            ['属性'], //属性
             ['装备', '药品', '材料', '炼器祝福符', '传送符', '替身', '飞天神符', '复活卷轴', '任务品', '离线道具', '任务发生器', '凭证物品', '烟花', '精炼符', '状态符', '技能石', '图样', '双倍经验物品', '增益物品', '坐骑', '双飞翼', '抽奖彩票', '法宝及飞宝', '聚气物品', '血炼及灌魔物品', '精力补充物品', '表情', '宠物', '宠物食物', '宠物装备', '宠物综合药品', '宠物强化道具', '宠物修炼道具', '文本书籍', '器魄', '战场物品', '锦盒礼包', 'VIP卡', '幻灵石', '幻灵石相关物品', '星盘', '星盘充能石', '混元天晶', '彩票赠品', '宝石', '宝石魔印', '宝石星砂', '宝石相关物品', '新彩票赠品', '在线小礼包', '银泰网密匙', '远行囊', '元婴', '符语', '战旗', '星座', '星座精力石', '药品存储瓶', '台历', '赠送彩票', '贺岁元宵', '消费积分礼包', '炼丹系统', '丹药', '符文', '染色剂', '仙裔时装属性', '仙裔玩具', '仙裔读物', '阵灵人物', '阵灵法宝', '仙裔宝宝牛奶', '仙裔宝宝阅历丹', '动作加速灵才', '轩辕策', '新礼包', '称号发放', '新版商城红包', '轩辕策修炼道具', '佩章', '四灵壁', '丹青头像', '自用礼包', '装备礼包', '书籍', '棒棒糖', '符咒', '空中书', '星辰'], //物品
-            ['生产配方'],//配方
+            ['属性'], //属性
+            ['生产配方'], //配方
             ['怪物', 'NPC'], //NPC
-            ['掉落表'],//掉落表
-            ['矿产'],//矿产
-            ['属性称号', '宝宝称号列表'],//属性称号
+            ['掉落表'], //掉落表
+            ['矿产'], //矿产
+            ['属性称号', '宝宝称号列表'], //属性称号
             ['装备大类', '装备小类', '药品大类', '药品小类', '材料大类', '材料小类', '掉落分类', '怪物分类', '配方大类', '配方小类', '矿产分类', '图样大类', '图样小类'] //分类
         ];
 
         //从数据结构读取element
         function parseData() {
             dataArray = {}; //初始化数据体
-            translateArray = {};
+            localArray = {};
             indexTotal = 0; //初始化索引
             //document.getElementById('tph').innerHTML = Object.keys(metaArray).length;
             for (let i in metaArray) {
@@ -42,15 +42,21 @@
                 }
                 let type;
                 if (types[0].includes(i.split('_')[1])) {
-                    type = 1;
-                } else if (types[1].includes(i.split('_')[1])) {
-                    type = 2;
-                } else if (types[2].includes(i.split('_')[1])) {
-                    type = 3;
-                } else if (types[3].includes(i.split('_')[1])) {
-                    type = 4;
-                } else {
                     type = 0;
+                } else if (types[1].includes(i.split('_')[1])) {
+                    type = 1;
+                } else if (types[2].includes(i.split('_')[1])) {
+                    type = 2;
+                } else if (types[3].includes(i.split('_')[1])) {
+                    type = 3;
+                } else if (types[4].includes(i.split('_')[1])) {
+                    type = 4;
+                } else if (types[5].includes(i.split('_')[1])) {
+                    type = 5;
+                } else if (types[6].includes(i.split('_')[1])) {
+                    type = 6;
+                } else {
+                    type = 7;
                 }
                 dataArray[i] = []; //初始化段
                 for (let j = 0; j < dataCount; j++) {
@@ -65,13 +71,13 @@
                             local = dataArray[i][j][k];
                         }
                     }
-                    if ((translateArray[id]) === undefined) {
-                        translateArray[id] = [];
+                    if ((localArray[id]) === undefined) {
+                        localArray[id] = [];
                     }
-                    if (translateArray[id][type] === undefined) {
-                        translateArray[id][type] = local;
+                    if (localArray[id][type] === undefined) {
+                        localArray[id][type] = local;
                     } else {
-                        translateArray[id][type] = translateArray[id][type] + '|' + local;
+                        localArray[id][type] = localArray[id][type] + '|' + local;
                     }
                 }
             }
@@ -170,13 +176,12 @@
             document.getElementById('output').innerHTML = output;
         }
 
-        function translate() {
+        function showLocal() {
             let output = '<table border="1">';
-            for (let i in translateArray) {
+            for (let i in localArray) {
                 output = output + '<tr><td>' + i + '</td>';
-                for (j = 0; j < 5; j++) {
-                    output = output + '<td>' + ((translateArray[i][j] === undefined) ? '' :
-                        translateArray[i][j]) + '</td>';
+                for (j = 0; j < localArray[0].length; j++) {
+                    output = output + '<td>' + ((localArray[i][j] === undefined) ? '' : localArray[i][j]) + '</td>';
                 }
                 output = output + '</tr>';
             }
@@ -185,8 +190,8 @@
         }
 
         function showFunctions() {
-            let output = '<input type="button" onclick="copyInner()" value="复制内容">'
-            output=output+'<input type="button" onclick="getBoxes()" value="锦盒礼包">'
+            let output = '<input type="button" onclick="copyInner()" value="复制内容">';
+            output = output + '<input type="button" onclick="getBoxes()" value="锦盒礼包">';
             document.getElementById('functions').innerHTML = output;
         }
 
@@ -218,7 +223,7 @@
                         order = 1;
                         itemID = boxData[j];
                         dataBox.contain[itemID] = {};
-                        dataBox.contain[itemID].name = translateArray[itemID];
+                        dataBox.contain[itemID].name = localArray[itemID];
                     } else if (order == 1) {
                         dataBox.contain[itemID].chance = boxData[j];
                         order = 2;
@@ -289,8 +294,14 @@
             }
         }
 
-        function copyInner(){
-            let inner=document.getElementById
+        function copyInner() {
+            let inner = document.getElementById('output');
+            let outer = document.createElement('input');
+            outer.setAttribute('value', inner.innerHTML);
+            document.body.appendChild(outer);
+            outer.select();
+            document.execCommand('copy');
+            document.body.removeChild(outer);
         }
     </script>
 </head>
@@ -316,13 +327,13 @@
             <input type="file" name="" id="metaFile" value="" /></br>
             <script>
                 input = document.getElementById('metaFile');
-                input.onchange = function () {
+                input.onchange = function() {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsText(file) //ArrayBuffer对象
-                        reader.onload = function (e) {
+                        reader.onload = function(e) {
                             //按行产生数组
                             let arrayMeta = reader.result.split('\n');
                             //初始化数据体
@@ -414,18 +425,18 @@
             <input type="file" name="" id="elFile" value="" /></br>
             <script>
                 input = document.getElementById('elFile');
-                input.onchange = function () {
+                input.onchange = function() {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsArrayBuffer(file); //ArrayBuffer对象
-                        reader.onload = function (e) {
+                        reader.onload = function(e) {
                             //读取完毕后输出结果
                             buffer = e.target.result;
                             parseData();
                             showFunctions();
-                            let output = '<input type="button" onclick="translate()" value="ID-名称对照表"></br>';
+                            let output = '<input type="button" onclick="showLocal()" value="ID-名称对照表"></br>';
                             for (let i in dataArray) {
                                 output = output + '<input type="button" onclick="drawData(\'' + i + '\')" value=' + i + '></br>';
                             }
@@ -435,11 +446,13 @@
                     this.files[0] = "";
                 }
             </script>
+            <hr>
             <div id="array"></div>
         </div>
         <div style="width:calc(100% - 260px);height: 100%;margin-left:260px;overflow: hidden;position: absolute;">
             <div id="functions" style="width: 100%;height: 50px;overflow: auto;"></div>
-            <div id="output" style="width: 100%;height: calc(100% - 50px);overflow: auto;"></div>
+            <hr>
+            <div id="output" style="width: 100%;height: calc(100% - 52px);overflow: auto;"></div>
         </div>
     </div>
 </body>
