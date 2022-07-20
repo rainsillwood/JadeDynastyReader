@@ -25,6 +25,9 @@
             ['装备大类', '装备小类', '药品大类', '药品小类', '材料大类', '材料小类', '掉落分类', '怪物分类', '配方大类', '配方小类', '矿产分类', '图样大类', '图样小类'] //分类
         ];
 
+        function parseMeta(metaFile) {
+
+        }
         //从数据结构读取element
         function parseData() {
             dataArray = {}; //初始化数据体
@@ -327,13 +330,13 @@
             <input type="file" name="" id="metaFile" value="" /></br>
             <script>
                 input = document.getElementById('metaFile');
-                input.onchange = function () {
+                input.onchange = function() {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsText(file) //ArrayBuffer对象
-                        reader.onload = function (e) {
+                        reader.onload = function(e) {
                             //按行产生数组
                             let arrayMeta = reader.result.split('\n');
                             //初始化数据体
@@ -425,13 +428,13 @@
             <input type="file" name="" id="elFile" value="" /></br>
             <script>
                 input = document.getElementById('elFile');
-                input.onchange = function () {
+                input.onchange = function() {
                     var file = this.files[0]; //获取文件
                     if (!!file) {
                         //读取本地文件
                         var reader = new FileReader();
                         reader.readAsArrayBuffer(file); //ArrayBuffer对象
-                        reader.onload = function (e) {
+                        reader.onload = function(e) {
                             //读取完毕后输出结果
                             buffer = e.target.result;
                             parseData();
