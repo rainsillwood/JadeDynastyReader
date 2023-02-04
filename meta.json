@@ -1,0 +1,50 @@
+[
+    {
+        "type": "属性",
+        "space": 12,
+        "length": 88,
+        "key": [
+            {
+                "name":"ID",
+                "type":"int",
+                "length":4
+            },
+            {
+                "name":"名称",
+                "type":"string",
+                "length":64
+            },
+            {
+                "name":"属性代码",
+                "type":"int",
+                "length":4
+            },
+            {
+                "name":"有效数量",
+                "type":"int",
+                "length":4
+            },
+            {
+                "name":"数值/技能ID",
+                "type":"auto",
+                "length":4
+            },
+            {
+                "name":"等级/时间",
+                "type":"int",
+                "length":4
+            },
+            {
+                "name":"几率",
+                "type":"float",
+                "length":4
+            }
+        ]
+    },
+    {
+        "type": "装备大类",
+        "space": 12,
+        "length": 88,
+        "key": []
+    }
+]

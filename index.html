@@ -97,6 +97,14 @@
                         }
                         break;
                     }
+                case 'auto':
+                    {
+                        idata = '';
+                        for (let x = 0; x < itype[1] / 2; x = x + 2) {
+                            if (dataViewer.getUint16(x, true) != 0) idata = idata + String.fromCharCode(dataViewer.getUint16(x, true));
+                        }
+                        break;
+                    }
                 case 'ascii':
                     {
                         idata = '';
